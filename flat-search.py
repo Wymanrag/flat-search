@@ -42,8 +42,8 @@ jsonfile.close()
 
 #clean OLX null objects
 jdata = cleanOLX(jdata)
-print jdata["results"][0]["all"]
-print jdata["results"][1]["all"]
+print jdata["results"][0]["all"].encode('utf-8')
+print jdata["results"][1]["all"].encode('utf-8')
 
 
 # for i in jdata["outputProperties"]:
