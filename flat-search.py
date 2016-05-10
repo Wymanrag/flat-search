@@ -42,8 +42,8 @@ jsonfile.close()
 
 #clean OLX null objects
 jdata = cleanOLX(jdata)
-print jdata["results"][0]["name"]
-print jdata["results"][1]["name"]
+print jdata["results"][0]["all"]
+print jdata["results"][1]["all"]
 
 
 # for i in jdata["outputProperties"]:
