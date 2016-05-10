@@ -9,17 +9,27 @@ import json
 
 print "STARTED...\n"
 
+# def cleanOLX(j2clean):
+#  	nr=0
+#  	j2clean_aux = j2clean
+#  	for a in j2clean_aux["results"]:
+#  		if "all" in a:
+#  			nr=nr+1
+#  			print a["all"].encode('utf-8')
+#  			print nr
+#  		else:
+#  			#j2clean["results"].pop(nr)
+#  			del j2clean["results"][nr]
+#  			#print j2clean["results"][nr]
+#  	return j2clean
+
 def cleanOLX(j2clean):
-	for a in j2clean["results"]:
-		if "all" in a:
-			print a["all"].encode('utf-8')
-		else:
-			del j2clean["results"].a
-	return j2clean
-
-#		if a["link"] is 'null':
-#			j2clean.pop["results"][a]
-
+ 	nr=0
+ 	j2clean_aux = []
+ 	for a in j2clean["results"]:
+ 		if "all" in a:
+ 			j2clean_aux.append(a)
+ 	return j2clean_aux
 #READ .conf
 # with open('importioapi.conf') as f:
 # 	lines = f.readlines()
@@ -42,8 +52,10 @@ jsonfile.close()
 
 #clean OLX null objects
 jdata = cleanOLX(jdata)
-print jdata["results"][0]["all"].encode('utf-8')
-print jdata["results"][1]["all"].encode('utf-8')
+for a in jdata:
+	print a["all"]
+#print jdata[0]["all"].encode('utf-8')
+#print jdata[1]["all"].encode('utf-8')
 
 
 # for i in jdata["outputProperties"]:
