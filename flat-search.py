@@ -15,6 +15,8 @@ def cleanOLX(j2clean):
 			print a["all"].encode('utf-8')
 		else:
 			del a
+	return j2clean
+	
 #		if a["link"] is 'null':
 #			j2clean.pop["results"][a]
 
@@ -39,7 +41,7 @@ jdata = json.load(jsonfile)
 jsonfile.close()
 
 #clean OLX null objects
-cleanOLX(jdata)
+jdata = cleanOLX(jdata)
 # print jdata["outputProperties"][0]["name"]
 
 # for i in jdata["outputProperties"]:
