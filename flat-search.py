@@ -43,7 +43,7 @@ cleanOLX(jdata)
 # for i in jdata["outputProperties"]:
 # 	print i["name"]
 	
-#create aged DB
+#create aged DB..
 
 print "\n...DONE"
 
