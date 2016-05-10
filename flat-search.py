@@ -14,7 +14,7 @@ def cleanOLX(j2clean):
 		if "all" in a:
 			print a["all"].encode('utf-8')
 		else:
-			del j2clean.a
+			del j2clean["results"].a
 	return j2clean
 
 #		if a["link"] is 'null':
