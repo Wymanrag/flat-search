@@ -9,6 +9,7 @@ import subprocess
 import json
 import hashlib
 import logging
+import os
 
 # def cleanOLX(j2clean):
 #  	nr=0
@@ -35,18 +36,16 @@ def cleanOLX(j2clean):
 def main():
 	logging.basicConfig(level=logging.INFO)
 	
-	logging.info('STARTED...')
-	#READ .conf
-	# with open('importioapi.conf') as f:
-	# 	lines = f.readlines()
-	#lines = [line.rstrip('\n') for line in open('importioapi.conf')]
+	logging.info('STARTED flat-serach.py...')
+	
+	#READ settings.conf
 	parser = ConfigParser.ConfigParser ()
 	parser.read('settings.conf')
-
 	user_guid = parser.get('OLX', 'USER_GUID')
 	urlencoded_api_key = parser.get('OLX', 'urlencoded_api_key')
 	extractor_guid = parser.get('OLX', 'extractor_guid')
-	#print ("user_guid = %s\nurlencoded_api_key = %s\nextractor_guid = %s" % (user_guid, urlencoded_api_key, extractor_guid))
+	logging.info('LOADED settings.conf')
+	logging.debug ("user_guid = %s\nurlencoded_api_key = %s\nextractor_guid = %s" % (user_guid, urlencoded_api_key, extractor_guid))
 
 	#run API bash
 	#rc = subprocess.call("./bashtractor.sh %s %s %s urls.txt data.json", shell = True)
@@ -58,16 +57,42 @@ def main():
 
 	#clean OLX null objects
 	jdata = cleanOLX(jdata)
+	
+	#debug
 	for a in jdata:
 		logging.debug(a["all"])
 	#print jdata[0]["all"].encode('utf-8')
 	#print jdata[1]["all"].encode('utf-8')
 
+	#
 	#create aged DB..
-	hash_object = hashlib.md5(jdata[0]["all"].encode('utf-8')+jdata[0]["preco"].encode('utf-8'))
-	logging.debug(hash_object.hexdigest())
+	#
+	dataux = {}
+	if os.path.isfile('dbhash.json'): 
+		jdbfile = open ('dbhash.json', 'r+')
+		logging.warning('Opened dbhash.json')
+	else:
+		jdbfile = open ('dbhash.json', 'wb')
+		logging.warning('Created dbhash.json')
+		jdb = json.dumps(dataux)
+	jdbfilesize = os.stat('dbhash.json').st_size
+	logging.warning("dbhash.json SIZE = %d", jdbfilesize)
 
-	logging.info('...DONE')
+	hash_object = hashlib.md5(jdata[0]["all"].encode('utf-8')+jdata[0]["preco"].encode('utf-8'))
+	logging.warning(hash_object.hexdigest())
+	dataux[hash_object.hexdigest()] = '0'
+	logging.warning(dataux)
+	jdb = json.dumps(dataux)
+	logging.warning(jdb)
+	json.dump(jdb, jdbfile)
+
+	#teste
+
+	logging.warning(jdb)
+	logging.warning(jdbfile)
+	jdbfile.close()
+
+	logging.info('... ENDED flat-serach.py')
 
 if __name__ == "__main__":
     main()
