@@ -4,26 +4,7 @@
 #Search for houses on some sites
 
 #START
-import ConfigParser
-import subprocess
-import json
-import hashlib
-import logging
-import os
-
-# def cleanOLX(j2clean):
-#  	nr=0
-#  	j2clean_aux = j2clean
-#  	for a in j2clean_aux["results"]:
-#  		if "all" in a:
-#  			nr=nr+1
-#  			print a["all"].encode('utf-8')
-#  			print nr
-#  		else:
-#  			#j2clean["results"].pop(nr)
-#  			del j2clean["results"][nr]
-#  			#print j2clean["results"][nr]
-#  	return j2clean
+import ConfigParser, subprocess, json, hashlib, logging, os, threading
 
 def cleanOLX(j2clean):
  	nr=0
@@ -32,6 +13,11 @@ def cleanOLX(j2clean):
  		if "all" in a:
  			j2clean_aux.append(a)
  	return j2clean_aux
+
+def dealWithnewapart(newapart):
+	for obj in newapart:
+		print("%s; %s; %s" % (obj["local"], obj["preco"], obj["link/_text"]))
+	
 
 def main():
 	logging.basicConfig(level=logging.INFO)
@@ -67,30 +53,39 @@ def main():
 	#
 	#create aged DB..
 	#
-	dataux = {}
+	dictaux = {}
+	newstuff = []
+	#check if db exists, else initiate it
 	if os.path.isfile('dbhash.json'): 
-		jdbfile = open ('dbhash.json', 'r+')
-		logging.warning('Opened dbhash.json')
+		jdbfile = open ('dbhash.json', 'r')
+		jdbfilesize = os.stat('dbhash.json').st_size
+		logging.debug("dbhash.json SIZE = %d", jdbfilesize)
+		jdb = json.load(jdbfile)
+		jdbfile.close()
+		logging.debug(jdb)
 	else:
-		jdbfile = open ('dbhash.json', 'wb')
-		logging.warning('Created dbhash.json')
-		jdb = json.dumps(dataux)
-	jdbfilesize = os.stat('dbhash.json').st_size
-	logging.warning("dbhash.json SIZE = %d", jdbfilesize)
+		jdb = dictaux
 
-	hash_object = hashlib.md5(jdata[0]["all"].encode('utf-8')+jdata[0]["preco"].encode('utf-8'))
-	logging.warning(hash_object.hexdigest())
-	dataux[hash_object.hexdigest()] = '0'
-	logging.warning(dataux)
-	jdb = json.dumps(dataux)
-	logging.warning(jdb)
+	for obj in jdata:
+		#hash_object = hashlib.md5(jdata[0]["all"].encode('utf-8')+jdata[0]["preco"].encode('utf-8'))
+		hash_object = hashlib.md5(obj["all"].encode('utf-8')+obj["preco"].encode('utf-8'))
+		#logging.warning(hash_object.hexdigest())
+		dictaux = {hash_object.hexdigest():"0"}
+		if hash_object.hexdigest() not in jdb:
+			jdb.update(dictaux)
+			logging.debug(hash_object.hexdigest())
+			newstuff.append(obj)
+
+	logging.info("db has %d entries!", len(jdb))
+	logging.info("newstuff has %d entries!", len(newstuff))
+
+	jdbfile = open ('dbhash.json', 'wb')
 	json.dump(jdb, jdbfile)
-
-	#teste
-
-	logging.warning(jdb)
-	logging.warning(jdbfile)
+	logging.info("dumped jdb to file")
+	logging.debug(jdbfile)
 	jdbfile.close()
+
+	dealWithnewapart(newstuff)
 
 	logging.info('... ENDED flat-serach.py')
 
