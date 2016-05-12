@@ -17,9 +17,14 @@ def cleanOLX(j2clean):
  			j2clean_aux.append(a)
  	return j2clean_aux
 
-def dealWithnewapart(newapart):
+def create_newapart_list(newapart):
+	newlist = []
 	for obj in newapart:
-		print("%s; %s; %s; %s" % (obj["local"], obj["preco"], obj["link/_text"], obj["link"]))
+		newaux = ("%s; %s; %s; %s" % (obj["local"], obj["preco"], obj["link/_text"], obj["link"]))
+		logging.warning(newaux)
+		newlist.append(newaux)
+	return newlist
+
 
 def queryAPI(userguid, apikey, extractor, url):
 	headers = {'Content-Type': 'application/json',}
@@ -39,7 +44,7 @@ def send_email(user, pwd, recipient, subject, body):
     FROM = user
     TO = recipient if type(recipient) is list else [recipient]
     SUBJECT = subject
-    TEXT = body
+    TEXT = body.encode('utf8')
 
     # Prepare actual message
     message = """\From: %s\nTo: %s\nSubject: %s\n\n%s
@@ -51,9 +56,9 @@ def send_email(user, pwd, recipient, subject, body):
         server.login(gmail_user, gmail_pwd)
         server.sendmail(FROM, TO, message)
         server.close()
-        print 'successfully sent the mail'
+        logging.info("successfully sent the mail") 
     except:
-        print "failed to send mail"
+        logging.info("failed to send mail")
 
 def main():
 	logging.basicConfig(level=logging.INFO)
@@ -81,12 +86,9 @@ def main():
 	#clean OLX null objects
 	if "results" in jdata:
 		jdata = cleanOLX(jdata)
-	else: logging("UPS...no results in json")
-	#debug
-	for a in jdata:
-		logging.debug(a["all"])
-	#print jdata[0]["all"].encode('utf-8')
-	#print jdata[1]["all"].encode('utf-8')
+	else:
+		logging.info("UPS...no results in json")
+		logging.warning(jdata)
 
 	#
 	#create aged DB..
@@ -123,7 +125,18 @@ def main():
 	logging.debug(jdbfile)
 	jdbfile.close()
 
-	dealWithnewapart(newstuff)
+	newaparts = create_newapart_list(newstuff)
+	body = "\n".join(newaparts)
+	print type(body)
+
+	#teste mail
+	#user, pwd, recipient, subject, body
+	usr="ze.pedro.rodrigues@gmail.com"
+	pw="Zecas28(#"
+	recip=["ze.pedro.rodrigues@gmail.com","fr.mariamelo@gmail.com"]
+	subj="teste flat-serach"
+	#body="body"
+	send_email(usr,pw,recip,subj,body)
 
 	logging.info('... ENDED flat-serach.py')
 
