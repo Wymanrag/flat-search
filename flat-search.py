@@ -135,7 +135,7 @@ def main():
 	pw="PASS"
 	recip=["ze.pedro.rodrigues@gmail.com","fr.mariamelo@gmail.com"]
 	subj="teste flat-serach"
-	#body="body"
+	#body="body"#
 	send_email(usr,pw,recip,subj,body)
 
 	logging.info('... ENDED flat-serach.py')
