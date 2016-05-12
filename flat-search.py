@@ -60,6 +60,9 @@ def send_email(user, pwd, recipient, subject, body):
     except:
         logging.info("failed to send mail")
 
+def search_OLX():
+	pass
+
 def main():
 	logging.basicConfig(level=logging.INFO)
 	
@@ -68,21 +71,28 @@ def main():
 	#READ settings.conf
 	parser = ConfigParser.ConfigParser ()
 	parser.read('settings.conf')
-	user_guid = parser.get('OLX', 'USER_GUID')
-	urlencoded_api_key = parser.get('OLX', 'urlencoded_api_key')
+	user_guid = parser.get('IMPORT_IO', 'your_user_guid')
+	urlencoded_api_key = parser.get('IMPORT_IO', 'your_urlencoded_api_key')
 	extractor_guid = parser.get('OLX', 'extractor_guid')
 	logging.info('LOADED settings.conf')
 	logging.debug ("user_guid = %s\nurlencoded_api_key = %s\nextractor_guid = %s" % (user_guid, urlencoded_api_key, extractor_guid))
-	url = "https://olx.pt/imoveis/apartamento-casa-a-venda/apartamentos-arrenda/alvercadoribatejo/?search%5Bdescription%5D=1"
+	#url = "https://olx.pt/imoveis/apartamento-casa-a-venda/apartamentos-arrenda/alvercadoribatejo/?search%5Bdescription%5D=1"
+	url = json.loads(parser.get('OLX', 'url'))
+	url = url[0]
 	#run API bash
 	#rc = subprocess.call("./bashtractor.sh %s %s %s urls.txt data.json", shell = True)
-	rc = queryAPI(user_guid, urlencoded_api_key, extractor_guid, url)
+	jdata = {}
+	counter1 = 1
+	while "results" not in jdata:
+		rc = queryAPI(user_guid, urlencoded_api_key, extractor_guid, url)
+		jdata = rc.json()
+		counter1 += 1
+		if counter1 is 5:
+			logging.info("UPS...Could retrieve data from %s" % (rc.url) )
+			break
 
-	#parse JSON
-	#jsonfile = open('data.json.bkp',  'rb')
-	#jdata = json.load(jsonfile)
-	#jsonfile.close()
-	jdata = rc.json()
+
+
 	#clean OLX null objects
 	if "results" in jdata:
 		jdata = cleanOLX(jdata)
@@ -127,14 +137,14 @@ def main():
 
 	newaparts = create_newapart_list(newstuff)
 	body = "\n".join(newaparts)
-	print type(body)
 
 	#teste mail
 	#user, pwd, recipient, subject, body
-	usr="ze.pedro.rodrigues@gmail.com"
-	pw="PASS"
-	recip=["ze.pedro.rodrigues@gmail.com","fr.mariamelo@gmail.com"]
-	subj="teste flat-serach"
+	usr = parser.get('EMAIL', 'usr')
+	pw = parser.get('EMAIL', 'pw')
+	recip = json.loads(parser.get('OLX', 'url'))
+	#print type(recip)
+	subj = parser.get('EMAIL','subj') 
 	#body="body"#
 	send_email(usr,pw,recip,subj,body)
 
