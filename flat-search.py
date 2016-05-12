@@ -132,7 +132,7 @@ def main():
 	#teste mail
 	#user, pwd, recipient, subject, body
 	usr="ze.pedro.rodrigues@gmail.com"
-	pw="Zecas28(#"
+	pw="PASS"
 	recip=["ze.pedro.rodrigues@gmail.com","fr.mariamelo@gmail.com"]
 	subj="teste flat-serach"
 	#body="body"
