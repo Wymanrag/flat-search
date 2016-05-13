@@ -61,14 +61,18 @@ def send_email(user, pwd, recipient, subject, body):
         logging.info("failed to send mail")
 
 def search_OLX(configs):
-	pass
 	user_guid = configs.get('IMPORT_IO', 'your_user_guid')
 	urlencoded_api_key = configs.get('IMPORT_IO', 'your_urlencoded_api_key')
 	extractor_guid = configs.get('OLX', 'extractor_guid')
 	logging.debug ("user_guid = %s\nurlencoded_api_key = %s\nextractor_guid = %s" % (user_guid, urlencoded_api_key, extractor_guid))
-	url = json.loads(configs.get('OLX', 'url'))
-	url = url[0]
-	
+	sites2search = ["OLX"]
+	url = {}
+	for site in sites2search:
+		url.update({'OLX':json.loads(configs.get('OLX', 'url'))})
+		#url = url[0]
+		logging.warning(url)
+		exit("Exiting for debug")
+
 	jdata = {}
 	#if not url:
 	#	for eachurl in url:
