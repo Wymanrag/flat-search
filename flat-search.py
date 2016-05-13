@@ -76,17 +76,19 @@ def main():
 	extractor_guid = parser.get('OLX', 'extractor_guid')
 	logging.info('LOADED settings.conf')
 	logging.debug ("user_guid = %s\nurlencoded_api_key = %s\nextractor_guid = %s" % (user_guid, urlencoded_api_key, extractor_guid))
-	#url = "https://olx.pt/imoveis/apartamento-casa-a-venda/apartamentos-arrenda/alvercadoribatejo/?search%5Bdescription%5D=1"
 	url = json.loads(parser.get('OLX', 'url'))
+	#settings read
+
 	url = url[0]
-	#run API bash
-	#rc = subprocess.call("./bashtractor.sh %s %s %s urls.txt data.json", shell = True)
+
+	#do the query
 	jdata = {}
 	counter1 = 1
 	while "results" not in jdata:
 		rc = queryAPI(user_guid, urlencoded_api_key, extractor_guid, url)
 		jdata = rc.json()
 		counter1 += 1
+		#stop if tried 5 times
 		if counter1 is 5:
 			logging.info("UPS...Could retrieve data from %s" % (rc.url) )
 			break
