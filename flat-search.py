@@ -65,13 +65,16 @@ def search_OLX(configs):
 	urlencoded_api_key = configs.get('IMPORT_IO', 'your_urlencoded_api_key')
 	extractor_guid = configs.get('OLX', 'extractor_guid')
 	logging.debug ("user_guid = %s\nurlencoded_api_key = %s\nextractor_guid = %s" % (user_guid, urlencoded_api_key, extractor_guid))
-	sites2search = ["OLX"]
-	url = {}
-	for site in sites2search:
-		url.update({'OLX':json.loads(configs.get('OLX', 'url'))})
-		#url = url[0]
-		logging.warning(url)
-		exit("Exiting for debug")
+	sites_supported = ["OLX", "IMOVIRTUAL", "BPI", "TESTE"]
+
+	for site in sites_supported:
+		logging.warning(site)
+		urllist = json.loads(configs.get(site, 'url'))
+		logging.warning(urllist)
+		if urllist: 
+			for url in urllist:
+				print url
+	exit("Exiting for debug")
 
 	jdata = {}
 	#if not url:
@@ -87,8 +90,7 @@ def search_OLX(configs):
 		if counter1 is 5:
 			logging.info("UPS...Could retrieve data from %s" % (rc.url) )
 			break
-	#else:
-	#	break
+
 
 	#clean OLX null objects
 	if "results" in jdata:
@@ -170,6 +172,5 @@ if __name__ == "__main__":
 
 '''
 notas:
-importar uma lista de [APIKEYS] com por ex: OLX, extractor
-e iterar num array de urls
+
 '''
