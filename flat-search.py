@@ -60,8 +60,41 @@ def send_email(user, pwd, recipient, subject, body):
     except:
         logging.info("failed to send mail")
 
-def search_OLX():
+def search_OLX(configs):
 	pass
+	user_guid = configs.get('IMPORT_IO', 'your_user_guid')
+	urlencoded_api_key = configs.get('IMPORT_IO', 'your_urlencoded_api_key')
+	extractor_guid = configs.get('OLX', 'extractor_guid')
+	logging.debug ("user_guid = %s\nurlencoded_api_key = %s\nextractor_guid = %s" % (user_guid, urlencoded_api_key, extractor_guid))
+	url = json.loads(configs.get('OLX', 'url'))
+	url = url[0]
+	
+	jdata = {}
+	#if not url:
+	#	for eachurl in url:
+		#call import IO API
+	counter1 = 1
+	while "results" not in jdata:
+		logging.info("...Quering import.io for OLX...")
+		rc = queryAPI(user_guid, urlencoded_api_key, extractor_guid, url)
+		jdata = rc.json()
+		counter1 += 1
+		#stop if tried 5 times
+		if counter1 is 5:
+			logging.info("UPS...Could retrieve data from %s" % (rc.url) )
+			break
+	#else:
+	#	break
+
+	#clean OLX null objects
+	if "results" in jdata:
+		jdata = cleanOLX(jdata)
+	else:
+		logging.info("UPS...no results in json")
+		logging.warning(jdata)
+
+	return jdata
+
 
 def main():
 	logging.basicConfig(level=logging.INFO)
@@ -71,36 +104,12 @@ def main():
 	#READ settings.conf
 	parser = ConfigParser.ConfigParser ()
 	parser.read('settings.conf')
-	user_guid = parser.get('IMPORT_IO', 'your_user_guid')
-	urlencoded_api_key = parser.get('IMPORT_IO', 'your_urlencoded_api_key')
-	extractor_guid = parser.get('OLX', 'extractor_guid')
 	logging.info('LOADED settings.conf')
-	logging.debug ("user_guid = %s\nurlencoded_api_key = %s\nextractor_guid = %s" % (user_guid, urlencoded_api_key, extractor_guid))
-	url = json.loads(parser.get('OLX', 'url'))
 	#settings read
 
-	url = url[0]
 
-	#do the query
-	jdata = {}
-	counter1 = 1
-	while "results" not in jdata:
-		rc = queryAPI(user_guid, urlencoded_api_key, extractor_guid, url)
-		jdata = rc.json()
-		counter1 += 1
-		#stop if tried 5 times
-		if counter1 is 5:
-			logging.info("UPS...Could retrieve data from %s" % (rc.url) )
-			break
-
-
-
-	#clean OLX null objects
-	if "results" in jdata:
-		jdata = cleanOLX(jdata)
-	else:
-		logging.info("UPS...no results in json")
-		logging.warning(jdata)
+	#call search_OLX to sera
+	jdata = search_OLX(parser)
 
 	#
 	#create aged DB..
@@ -154,3 +163,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+'''
+notas:
+importar uma lista de [APIKEYS] com por ex: OLX, extractor
+e iterar num array de urls
+'''
