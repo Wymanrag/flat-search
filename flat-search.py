@@ -21,7 +21,7 @@ def create_newapart_list(newapart):
 	newlist = []
 	for obj in newapart:
 		newaux = ("%s; %s; %s; %s" % (obj["local"], obj["preco"], obj["link/_text"], obj["link"]))
-		logging.warning(newaux)
+		logging.debug(newaux)
 		newlist.append(newaux)
 	return newlist
 
@@ -67,13 +67,17 @@ def send_email(user, pwd, recipient, subject, body):
         server.sendmail(FROM, TO, message)
         server.close()
         logging.info("successfully sent the mail") 
+        logging.debug("FROM: %s - type %s; TO: %s; gmail_user: %s - type %s" % (FROM, type(FROM), TO, gmail_user, type(gmail_user)))
+
     except:
         logging.info("failed to send mail")
+        logging.debug("FROM: %s - type %s; TO: %s; gmail_user: %s - type %s" % (FROM, type(FROM), TO, gmail_user, type(gmail_user)))
+
 
 def db_init():
 	dictaux = {}
-	if os.path.isfile('dbhash.json'): 
-		jdbfile = open ('dbhash.json', 'r')
+	if os.path.isfile(os.path.dirname(os.path.abspath(__file__))+'/dbhash.json'): 
+		jdbfile = open (os.path.dirname(os.path.abspath(__file__))+'/dbhash.json', 'r')
 		jdbfilesize = os.stat('dbhash.json').st_size
 		logging.debug("dbhash.json SIZE = %d", jdbfilesize)
 		if jdbfilesize != 0:
@@ -88,7 +92,7 @@ def db_init():
 	return jdbinit
 
 def db_update(dbref):
-	jdbfile = open ('dbhash.json', 'wb')
+	jdbfile = open (os.path.dirname(os.path.abspath(__file__))+'/dbhash.json', 'wb')
 	json.dump(dbref, jdbfile)
 	logging.info("dumped jdb to file")
 	logging.debug(jdbfile)
@@ -112,22 +116,22 @@ def search4apart(configs):
 	jdata = {}
 	newstuff = []
 	for site in sites_supported:
-		logging.warning(site)
+		logging.info("Now looking at site %s" % (site))
 		urllist = json.loads(configs.get(site, 'url'))
-		logging.warning(urllist)
+		logging.info("URLs: %s " % (urllist))
 		if urllist: 
 			for url in urllist:
 				logging.info("Now will get data from url: %s" % (url))
 				extractor_guid = configs.get('API_EXTRACTORS', site)
-				logging.warning("extractor_guid = %s " % extractor_guid)
+				logging.debug("extractor_guid = %s " % extractor_guid)
 				rc = queryAPI(user_guid, urlencoded_api_key, extractor_guid, url)
 				jdata = rc
 
-				if "results" in jdata:
+				if "results" in jdata and site is "OLX":
 					jdata = cleanOLX(jdata)
 				else:
 					logging.info("UPS...no results in json")
-					logging.warning(jdata)
+					logging.debug(jdata)
 
 				for obj in jdata:
 				#hash_object = hashlib.md5(jdata[0]["all"].encode('utf-8')+jdata[0]["preco"].encode('utf-8'))
@@ -156,12 +160,13 @@ def main():
 	
 	logging.info('STARTED flat-serach.py...')
 	
+
+
 	#READ settings.conf
 	parser = ConfigParser.ConfigParser ()
-	parser.read('settings.conf')
+	parser.read(os.path.dirname(os.path.abspath(__file__))+'/settings.conf')
 	logging.info('LOADED settings.conf')
 	#settings read
-
 
 	#call search_OLX to sera
 	newstuff = search4apart(parser)
@@ -206,12 +211,11 @@ def main():
 
 	#teste mail
 	#user, pwd, recipient, subject, body
-	usr = parser.get('EMAIL', 'usr')
+	usr = parser.get('EMAIL', 'usr').encode('ascii')
 	pw = parser.get('EMAIL', 'pw')
-	recip = json.loads(parser.get('OLX', 'url'))
-	#print type(recip)
+	recip = json.loads(parser.get('EMAIL', 'recip'))
 	subj = parser.get('EMAIL','subj') 
-	#body="body"#
+
 	send_email(usr,pw,recip,subj,body)
 
 	logging.info('... ENDED flat-serach.py')
