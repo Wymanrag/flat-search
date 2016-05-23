@@ -161,7 +161,6 @@ def main():
 	logging.info('STARTED flat-serach.py...')
 	
 
-
 	#READ settings.conf
 	parser = ConfigParser.ConfigParser ()
 	parser.read(os.path.dirname(os.path.abspath(__file__))+'/settings.conf')
@@ -214,9 +213,10 @@ def main():
 	usr = parser.get('EMAIL', 'usr').encode('ascii')
 	pw = parser.get('EMAIL', 'pw')
 	recip = json.loads(parser.get('EMAIL', 'recip'))
-	subj = parser.get('EMAIL','subj') 
+	subj = parser.get('EMAIL','subj')
+	tosendmail = parser.get('EMAIL', 'sendmail') 
 
-	send_email(usr,pw,recip,subj,body)
+	if tosendmail is "true": send_email(usr,pw,recip,subj,body)
 
 	logging.info('... ENDED flat-serach.py')
 
