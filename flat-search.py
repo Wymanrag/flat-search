@@ -12,8 +12,10 @@ import ConfigParser, subprocess, json, hashlib, logging, os, requests
 def cleanOLX(j2clean):
  	nr=0
  	j2clean_aux = []
+ 	rm_other = j2clean["results"][0]["local"]
+ 	logging.warning(rm_other)
  	for a in j2clean["results"]:
- 		if "all" in a:
+ 		if "all" in a and a["local"] == rm_other:
  			j2clean_aux.append(a)
  	return j2clean_aux
 
@@ -118,7 +120,7 @@ def search4apart(configs):
 	for site in sites_supported:
 		logging.info("Now looking at site %s" % (site))
 		urllist = json.loads(configs.get(site, 'url'))
-		logging.info("URLs: %s " % (urllist))
+		logging.debug("URLs: %s " % (urllist))
 		if urllist: 
 			for url in urllist:
 				logging.info("Now will get data from url: %s" % (url))
@@ -127,21 +129,31 @@ def search4apart(configs):
 				rc = queryAPI(user_guid, urlencoded_api_key, extractor_guid, url)
 				jdata = rc
 
-				if "results" in jdata and site is "OLX":
-					jdata = cleanOLX(jdata)
+				if "results" in jdata:
+					if site is "OLX": 
+						jdata = cleanOLX(jdata)
+					for obj in jdata:
+						#hash_object = hashlib.md5(jdata[0]["all"].encode('utf-8')+jdata[0]["preco"].encode('utf-8'))
+						hash_object = hashlib.md5(obj["all"].encode('utf-8')+obj["preco"].encode('utf-8'))
+						#logging.warning(hash_object.hexdigest())
+						dictaux = {hash_object.hexdigest():"date"}
+						if hash_object.hexdigest() not in jdb:
+							jdb.update(dictaux)
+							logging.debug(hash_object.hexdigest())
+							newstuff.append(obj)
 				else:
 					logging.info("UPS...no results in json")
 					logging.debug(jdata)
 
-				for obj in jdata:
-				#hash_object = hashlib.md5(jdata[0]["all"].encode('utf-8')+jdata[0]["preco"].encode('utf-8'))
-					hash_object = hashlib.md5(obj["all"].encode('utf-8')+obj["preco"].encode('utf-8'))
-					#logging.warning(hash_object.hexdigest())
-					dictaux = {hash_object.hexdigest():"date"}
-					if hash_object.hexdigest() not in jdb:
-						jdb.update(dictaux)
-						logging.debug(hash_object.hexdigest())
-						newstuff.append(obj)
+				# for obj in jdata:
+				# #hash_object = hashlib.md5(jdata[0]["all"].encode('utf-8')+jdata[0]["preco"].encode('utf-8'))
+				# 	hash_object = hashlib.md5(obj["all"].encode('utf-8')+obj["preco"].encode('utf-8'))
+				# 	#logging.warning(hash_object.hexdigest())
+				# 	dictaux = {hash_object.hexdigest():"date"}
+				# 	if hash_object.hexdigest() not in jdb:
+				# 		jdb.update(dictaux)
+				# 		logging.debug(hash_object.hexdigest())
+				# 		newstuff.append(obj)
 	db_update(jdb)
 	#exit("Exiting for debug")
 
@@ -207,7 +219,7 @@ def main():
 
 	newaparts = create_newapart_list(newstuff)
 	body = "\n".join(newaparts)
-
+	
 	#teste mail
 	#user, pwd, recipient, subject, body
 	usr = parser.get('EMAIL', 'usr').encode('ascii')
@@ -217,6 +229,9 @@ def main():
 	tosendmail = parser.get('EMAIL', 'sendmail') 
 
 	if tosendmail is "true": send_email(usr,pw,recip,subj,body)
+	else: 
+		logging.info('opted not to send mail. (Cofigurable in settings.conf)')
+		logging.warning(body)
 
 	logging.info('... ENDED flat-serach.py')
 
@@ -225,5 +240,4 @@ if __name__ == "__main__":
 
 '''
 notas:
-
 '''
